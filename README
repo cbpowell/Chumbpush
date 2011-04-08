@@ -12,4 +12,4 @@ First, edit the config.ini file in the same directory as Chumbpush.py, adding yo
 - Twitter - You'll need to register a new application with Twitter, and enter  the associated Consumer key and Consumer secret. Then, using get_access_token.py (with your Consumer key and secret), get your access_token_key and access_token_secret and add them as well
 - Bit.ly - add your bit.ly login and API key
 
-When run using python Chumbpush.py, unread emails in the Chumby folder will be grabbed and converted!
+When run using python Chumbpush.py, unread emails in the Chumby folder will be grabbed, shortened, and posted!
