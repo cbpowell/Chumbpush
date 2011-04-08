@@ -1,4 +1,4 @@
-A python script to take (short) emails from an IMAP server, shorten the URLs with Bit.ly, and post them to Twitter.
+A python script to take (short) emails from an IMAP server, shorten the URLs with Bit.ly, and post them to Twitter. It's currently intended to be run as some kind of triggered action, or as a scheduled task.
 
 Dependencies:
 python-twitter (http://code.google.com/p/python-twitter/)
