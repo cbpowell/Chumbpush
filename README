@@ -1,0 +1,15 @@
+A python script to take (short) emails from an IMAP server, shorten the URLs with Bit.ly, and post them to Twitter.
+
+Dependencies:
+python-twitter (http://code.google.com/p/python-twitter/)
+python-bitly (http://code.google.com/p/python-bitly/)
+*Note: these dependencies have sub-dependencies
+
+Using:
+First, edit the config.ini file in the same directory as Chumbpush.py, adding your configuration details.
+
+- IMAP - add your server, username, and password (sorry, plaintext!)
+- Twitter - You'll need to register a new application with Twitter, and enter  the associated Consumer key and Consumer secret. Then, using get_access_token.py (with your Consumer key and secret), get your access_token_key and access_token_secret and add them as well
+- Bit.ly - add your bit.ly login and API key
+
+When run using python Chumbpush.py, unread emails in the Chumby folder will be grabbed and converted!
