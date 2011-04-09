@@ -1,7 +1,8 @@
-import twitter, imaplib
+import imaplib2, time
+from threading import *
 import os, sys
-import re, bitly
-import ConfigParser
+import twitter, bitly
+import ConfigParser, re
 
 def bitify_urls(api, text, verbose=False):
 	pat_url = re.compile(  r'''http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+''')
@@ -19,12 +20,13 @@ def bitify_urls(api, text, verbose=False):
 def open_connections(verbose=False):
 	# Read from config file
 	config = ConfigParser.ConfigParser()
-	config.read('config.ini')
+	#config.read('config.ini')
+	config.read([os.path.expanduser('~/.chumbpush')])
 	
 	# Connect to IMAP server
 	imap_server = config.get('imap', 'server')
 	if verbose: print 'Connecting to', imap_server
-	imap_connection = imaplib.IMAP4_SSL(imap_server)
+	imap_connection = imaplib2.IMAP4_SSL(imap_server)
 	
 	# Login to our account
 	imap_username = config.get('imap', 'username')
@@ -46,31 +48,76 @@ def open_connections(verbose=False):
 	
 	return imap_connection, twitter_api, bitify
 
-
-
-
-M, T, B = open_connections()
-
-if (M is not None) and (T is not None) and (B is not None):
-	try:
-		M.select('Chumby')
+# from http://blog.timstoop.nl/2009/03/11/python-imap-idle-with-imaplib2/
+class Idler(object):
+	def __init__(self, email, twitter, bitly):
+		self.thread = Thread(target=self.idle)
+		self.M = email
+		self.T = twitter
+		self.B = bitly
+		self.event = Event()
+	
+	def start(self):
+		self.thread.start()
+    
+	def stop(self):
+		print 'Stopping idler thread'
+		self.event.set()
+	
+	def join(self):
+		self.thread.join()
+	
+	def idle(self):
+		while True:
+			if self.event.isSet():
+				return
+			self.needsync = False
+			def callback(args):
+				if not self.event.isSet():
+					self.needsync = True
+					self.event.set()
+			
+			self.M.idle(callback=callback)
+			
+			self.event.wait()
+			
+			if self.needsync:
+				self.event.clear()
+				self.dosync()
+	
+	def dosync(self):
+		print "Got an event!"
 		typ, data = M.search(None, 'UNSEEN')
-	except:
-		print 'Could not access IMAP data'
-	else:
 		if len(data[0].split()) > 0:
 			for num in data[0].split():
+				# retrieve data for email, marking as read in the process (could use (BODY.PEEK[TEXT]) to avoid marking as read)
 				typ, msg_data = M.fetch(num, '(BODY[TEXT])')
-				content = msg_data[0][1].replace('\r', '').replace('\n','').split('Please do not')[0]
+				
+				# strip newlines and carriage retunrs, and split at 'Please do not reply' to chop off 'Please do not reply to this email...' parts
+				content = msg_data[0][1].replace('\r', '').replace('\n','').split('Please do not reply')[0]
+				
+				# replace URLs with short URLs
 				msg = bitify_urls(api = B, text = content, verbose = True)
+				
+				# post message if it's shorter than 140
 				if len(msg) <= 140:
 					try:
 						status = T.PostUpdate(msg)
 					except TwitterError as e:
 						print 'Twitter error:', e
 				else:
+					# shorten otherwise (coming soon)
 					print 'Post too long, this needs a way to be handled!'
-					
+
+try:
+	M, T, B = open_connections()
+	M.select('Chumby')
+	idler = Idler(M, T, B)
+	idler.start()
+	time.sleep(4*60)
+finally:
+	idler.stop()
+	idler.join()
 	M.close()
 	M.logout()
-	sys.exit
+	sys.exit()
