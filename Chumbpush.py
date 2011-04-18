@@ -114,7 +114,11 @@ try:
 	M.select('Chumby')
 	idler = Idler(M, T, B)
 	idler.start()
-	time.sleep(4*60)
+	finished = False
+	while (finished == False):
+		response = raw_input("Enter \"Y\" to stop script: ")
+		if response == "Y" or response == "y" or response == "yes" or response == "YES" or response == "Yes":
+			finished = True
 finally:
 	idler.stop()
 	idler.join()
