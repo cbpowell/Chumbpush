@@ -1,4 +1,6 @@
-A python script to take (short) emails from an IMAP server, shorten the URLs with Bit.ly, and post them to Twitter. It currently uses IMAP IDLE to watch for new emails for a specified amount of time (going to add an option to stop soon), and acts when one is received.
+A python script to take (short) emails from an IMAP server, shorten the URLs with Bit.ly, and post them to Twitter. It currently uses IMAP IDLE to watch for new emails, and perform the previously stated actions when one is received.
+
+Intended originally to be used to tweet emails sent from a Chumby, but it can be easily modified to watch for emails in a wide range of criteria (sender, subject, folder/Gmail label, content).
 
 Dependencies:
 imaplib2 (http://www.janeelix.com/piers/python/imaplib.html)
